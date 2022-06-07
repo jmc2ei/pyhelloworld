@@ -1,0 +1,55 @@
+import time
+import sys
+import multiprocessing as mp
+import math
+import signal
+signal.alarm(120)
+
+def worker(a,b,q):
+    counter = 0
+    for x in range(a,b+1):
+        storedSqrt= math.sqrt(x)
+        storedDecimal = storedSqrt -int(storedSqrt)
+        seven =int((storedDecimal * 10))
+        if(seven == 7):
+            counter += 1
+    q.put(counter)
+
+
+procs = []
+q = mp.Queue()
+
+n = int(sys.argv[3])
+startValue = int(sys.argv[1])
+endValue = int(sys.argv[2])
+
+total = endValue - startValue
+split = int(total / n) 
+lowerValue = int(startValue)
+higherValue = int(lowerValue + split -1)  
+
+
+for i in range(int(n)):
+    lo = lowerValue 
+    hi = higherValue 
+    lowerValue = higherValue + 1
+    higherValue = lowerValue + split
+    p = mp.Process(target = worker, args = (lo,hi,q))
+    procs.append(p)
+
+    
+
+    
+startTime = time.time()
+for p in procs:
+    p.start()
+
+for p in procs:
+    p.join()
+
+
+s = 0
+for p in procs:
+    s+= q.get()
+print("%0.2f" % (time.time() - startTime), " ", s)
+
